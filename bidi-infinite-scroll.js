@@ -17,6 +17,7 @@
     var container = document.querySelector('section');
 
     var minSpace = 1000;
+    var maxSpace = 5000;
     var top = 0;
     var bottom = 0;
     var requested = false;
@@ -25,12 +26,17 @@
     function checkInsert() {
         requested = false;
         var n = 0;
-        while (container.scrollTop < minSpace) {
-            insertSomeTop();
+
+        if (container.scrollTop < minSpace) {
+            while (container.scrollTop < maxSpace) {
+                insertSomeTop();
+            }
         }
 
-        while (container.scrollHeight - container.scrollTop - container.clientHeight < minSpace) {
-            insertSomeBelow();
+        if (container.scrollHeight - container.scrollTop - container.clientHeight < minSpace) {
+            while (container.scrollHeight - container.scrollTop - container.clientHeight < maxSpace) {
+                insertSomeBelow();
+            }
         }
 
         while (container.scrollHeight > container.clientHeight * maxHeightFactor) {
