@@ -4,36 +4,73 @@
     for (var i = 0; i < 200; i++) {
         buffer[i] = '<pre>' + i + ': hey\nhey\nhey\nwe\nare\nthe\nmonkeys<\/pre>';
     }
+    
+    function nth(n) {
+        var off = n % buffer.length;
+        if (off < 0) {
+            return buffer[buffer.length + off];
+        } else {
+            return buffer[off];
+        }
+    }
 
     var container = document.querySelector('section');
 
     var minSpace = 1000;
     var top = 0;
     var bottom = 0;
+    var requested = false;
+    var maxHeightFactor = 25;
 
-    requestAnimationFrame(function checkInsert() {
+    function checkInsert() {
+        requested = false;
         var n = 0;
         while (container.scrollTop < minSpace) {
             insertSomeTop();
-            if (n++ > 50) return console.warn('bail top');
         }
 
         while (container.scrollHeight - container.scrollTop - container.clientHeight < minSpace) {
             insertSomeBelow();
-            if (n++ > 50) return console.warn('bail bottom');
         }
 
-        requestAnimationFrame(checkInsert)
-    })
+        while (container.scrollHeight > container.clientHeight * maxHeightFactor) {
+            if (container.scrollTop < container.scrollHeight - container.clientHeight - container.scrollTop) {
+                removeFromBottom();
+            } else {
+                removeFromTop();
+            }
+        }
+    }
+
+    requestAnimationFrame(checkInsert)
+
+    container.onscroll = function () {
+        if (!requested) {
+            requested = true
+            requestAnimationFrame(checkInsert)
+        } 
+    }
+
+    function removeFromBottom() {
+        container.removeChild(container.childNodes[container.childNodes.length - 1])
+        bottom -= 1;
+    }
+
+    function removeFromTop() {
+        var scrollOffset = container.childNodes[0].clientHeight;
+        container.removeChild(container.childNodes[0])
+        container.scrollTop -= scrollOffset;
+        top += 1;
+    }
 
     function insertSomeTop() {
-        top = (top + 1) % buffer.length;
-        insertKeepingScroll(container, el(buffer[buffer.length - top - 1]));
+        top -= 1;
+        insertKeepingScroll(container, el(nth(top)));
     }
 
     function insertSomeBelow() {
-        bottom = (bottom + 1) % buffer.length;
-        container.appendChild(el(buffer[bottom]))
+        bottom += 1;
+        container.appendChild(el(nth(bottom)))
     }
 
     function el(text) {
